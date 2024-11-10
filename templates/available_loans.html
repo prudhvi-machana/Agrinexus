@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Available Loans{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_loans.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+
+    <!-- Flash Messages for Feedback -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Search Bar -->
+    <form id="search-form" method="GET" action="{{ url_for('search_available_loan') }}" class="search-form">
+        <input type="text" name="loan_type" placeholder="Search by Loan Type" class="input-field" required>
+        <button type="submit" class="search-button">Search</button>
+    </form>
+
+    <!-- Loan Table -->
+    <div class="table-container">
+        <table id="loan-table">
+            <thead>
+                <tr>
+                    <th>Loan Type</th>
+                    <th>Description</th>
+                    <th>Eligibility</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                <tr>
+                    <td>{{ loan['loan_type'] }}</td>
+                    <td>{{ loan['description'] }}</td>
+                    <td>{{ loan['eligibility'] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,71 @@
+
+{% extends "base4.html" %}
+
+{% block title %}Farmer Loans Taken{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_loans_taken.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+
+    <!-- Flash Messages for Feedback -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Check if loans_taken is empty -->
+    {% if not loans_taken %}
+        <!-- Message for No loans Found -->
+        <div class="no-loans-message" style="text-align: center; margin: 5px 0;">
+            <h2 style="font-size: 20px; color: #333;">No Loan Taken</h2>
+        </div>
+    {% else %}
+        <!-- Search Bar -->
+        <form id="search-form" action="{{ url_for('farmer_loans_taken') }}" method="GET" class="search-form">
+            <input type="text" name="search_loan_taken" placeholder="Search by Loan Type" class="input-field">
+            <button type="submit" class="search-button">Search</button>
+        </form>
+
+        <!-- Loans Taken Table -->
+        <div class="table-container">
+            <table id="loan-taken-table">
+                <thead>
+                    <tr>
+                        <th>Loan Type</th>
+                        <th>Bank Name</th>
+                        <th>Sanction Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for loan in loans_taken %}
+                        <tr>
+                            <td>{{ loan['loan_type'] }}</td>
+                            <td>{{ loan['bank_name'] }}</td>
+                            <td>{{ loan['sanction_date'] }}</td>
+                            <td>{{ loan['due_date'] }}</td>
+                            <td>{{ loan['amount_taken'] }}</td>
+                            <td>{{ loan['status'] }}</td>  <!-- Display Status -->
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="6" style="text-align: center;">No loans available.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
