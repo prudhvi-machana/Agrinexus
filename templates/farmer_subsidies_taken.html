@@ -1,3 +1,4 @@
+
 {% extends "base4.html" %}
 
 {% block title %}Farmer Subsidies Taken{% endblock %}
@@ -20,20 +21,12 @@
         {% endif %}
     {% endwith %}
 
-
-
-    <!-- Check if subsidies_taken is empty -->
-    {% if not subsidies_taken %}
-        <!-- Message for No Subsidies Found -->
-        <div class="no-subsidies-message" style="text-align: center; margin: 5px 0;">
-            <h2 style="font-size: 20px; color: #333;">No Subsidy Taken</h2>
-        </div>
-    {% else %}
     <!-- Search Bar -->
     <form id="search-form" action="{{ url_for('farmer_subsidies_taken') }}" method="GET" class="search-form">
         <input type="text" name="search_subsidy_taken" placeholder="Search by Subsidy Name" class="input-field">
         <button type="submit" class="search-button">Search</button>
     </form>
+    
         <!-- Subsidies Taken Table -->
         <div class="table-container">
             <table id="subsidy-taken-table">
@@ -53,6 +46,5 @@
                 </tbody>
             </table>
         </div>
-    {% endif %}
 </div>
 {% endblock %}
