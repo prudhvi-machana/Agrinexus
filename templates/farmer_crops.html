@@ -1,7 +1,6 @@
-
 {% extends "base4.html" %}
 
-{% block title %}Farmer Lands{% endblock %}
+{% block title %}Farmer Crops{% endblock %}
 
 {% block extra_css %}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/manage_crops.css') }}">
@@ -22,55 +21,45 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Check if crops is empty -->
-    {% if not crops %}
-        <!-- Message for No Crop Found -->
-        <div class="no-crops-message" style="text-align: center; margin: 5px 0;">
-            <h2 style="font-size: 20px; color: #333;">No Crop Present</h2>
+    <!-- Search Form -->
+    <form id="search-form" action="{{ url_for('farmer_crops', aadhar_id=farmer['aadhar_id']) }}" method="GET" class="search-form">
+        <input type="text" name="search_avail_crop" placeholder="Search by Crop Name" required class="input-field">
+        <button type="submit" class="search-button">Search</button>
+    </form>
+
+        <div class="table-container">
+            <table id="crop-table">
+                <thead>
+                    <tr>
+                        <th>Land ID</th>
+                        <th>Crop Name</th>
+                        <th>Crop Size</th>
+                        <th>N%</th>
+                        <th>P%</th>
+                        <th>K%</th>
+                        <th>Soil pH</th>
+                        <th>Planting Date</th>
+                        <th>Harvest Date</th>
+                        <th>Crop Suggestion</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for crop in crops %}
+                    <tr>
+                        <td>{{ crop['land_id'] }}</td>
+                        <td>{{ crop['crop_name'] }}</td>
+                        <td>{{ crop['crop_size'] }}</td>
+                        <td>{{ crop['N_percent'] }}</td>
+                        <td>{{ crop['P_percent'] }}</td>
+                        <td>{{ crop['K_percent'] }}</td>
+                        <td>{{ crop['soil_ph'] }}</td>
+                        <td>{{ crop['planting_date'] }}</td>
+                        <td>{{ crop['harvest_date'] }}</td>   
+                        <td>{{ crop['crop_suggestion'] }}</td>  
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    {% else %}
-    
-        <!-- Search Form -->
-        <form id="search-form" action="{{ url_for('farmer_crops', aadhar_id=farmer['aadhar_id']) }}" method="GET" class="search-form">
-            <input type="text" name="search_avail_crop" placeholder="Search by Crop Name" required class="input-field">
-            <button type="submit" class="search-button">Search</button>
-        </form>
-
-            <div class="table-container">
-                <table id="crop-table">
-                    <thead>
-                        <tr>
-                            <th>Land ID</th>
-                            <th>Crop Name</th>
-                            <th>Crop Size</th>
-                            <th>N%</th>
-                            <th>P%</th>
-                            <th>K%</th>
-                            <th>Soil pH</th>
-                            <th>Planting Date</th>
-                            <th>Harvest Date</th>
-                            <th>Crop Suggestion</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for crop in crops %}
-                        <tr>
-                            <td>{{ crop['land_id'] }}</td>
-                            <td>{{ crop['crop_name'] }}</td>
-                            <td>{{ crop['crop_size'] }}</td>
-                            <td>{{ crop['N_percent'] }}</td>
-                            <td>{{ crop['P_percent'] }}</td>
-                            <td>{{ crop['K_percent'] }}</td>
-                            <td>{{ crop['soil_ph'] }}</td>
-                            <td>{{ crop['planting_date'] }}</td>
-                            <td>{{ crop['harvest_date'] }}</td>
-                            <td>{{ crop['crop_suggestion'] }}</td>  
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-    {% endif %}
-
 </div>
 {% endblock %}
