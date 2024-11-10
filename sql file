@@ -1,17 +1,17 @@
-
 CREATE DATABASE AgriData;
 USE AgriData;
 
+-- Authority Table
 CREATE TABLE auths (
     auth_id INT AUTO_INCREMENT PRIMARY KEY,
     auth_name VARCHAR(100) NOT NULL,
-    auth_email VARCHAR(255) NOT NULL UNIQUE,
-    auth_pass VARCHAR(255) NOT NULL,
+    auth_email VARCHAR(150) NOT NULL UNIQUE,
+    auth_pass VARCHAR(100) NOT NULL,
     auth_phone_no VARCHAR(15) NOT NULL UNIQUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create table for farmers
+-- Farmers Table
 CREATE TABLE farmers (
     farmer_id INT AUTO_INCREMENT PRIMARY KEY,  
     farmer_name VARCHAR(100) NOT NULL,
@@ -22,7 +22,7 @@ CREATE TABLE farmers (
     aadhar_id VARCHAR(12) NOT NULL UNIQUE  
 );
 
-
+-- Loans Table
 CREATE TABLE loans (
     loan_id INT AUTO_INCREMENT PRIMARY KEY,
     loan_type VARCHAR(100) NOT NULL UNIQUE,
@@ -83,28 +83,37 @@ CREATE TABLE schemes_taken (
     FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id) ON DELETE CASCADE ON UPDATE CASCADE  -- Cascades on both delete and update
 );
 
+-- Land Owned by Farmers
 CREATE TABLE lands(
     land_id INT AUTO_INCREMENT PRIMARY KEY,
     aadhar_id VARCHAR(12),
     location VARCHAR(50) NOT NULL,
     soil_type VARCHAR(50) NOT NULL,
     land_size DECIMAL(10,4) NOT NULL,
-    deleted BOOLEAN DEFAULT FALSE ,
-    FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id)ON DELETE CASCADE ON UPDATE CASCADE  -- Cascades on both delete and update
-    );
-drop table crops;
+    deleted BOOLEAN DEFAULT FALSE,
+    FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Crops Grown on Land
 CREATE TABLE crops (
-    land_id INT ,
+    land_id INT,
+    aadhar_id VARCHAR(12),
     crop_name VARCHAR(100) NOT NULL,
     crop_size DECIMAL(10,4) NOT NULL,
-    soil_ph DECIMAL(10,4),
+    N_percent DECIMAL(4, 2) NOT NULL,
+    P_percent DECIMAL(4, 2) NOT NULL,
+    K_percent DECIMAL(4, 2) NOT NULL,
+    soil_ph DECIMAL(3, 2),
     planting_date DATE NOT NULL,
-    harvest_date DATE ,
+    harvest_date DATE,
     crop_suggestion VARCHAR(100),
-    deleted BOOLEAN DEFAULT FALSE ,
-    primary key(land_id,crop_name,planting_date),
-    FOREIGN KEY (land_id) REFERENCES lands(land_id)-- Cascades on both delete and update
-    );
-select * from crops;
-select * from lands;
-select * from farmers;
+    deleted BOOLEAN DEFAULT FALSE,
+    PRIMARY KEY (land_id, crop_name, planting_date),
+    FOREIGN KEY (land_id) REFERENCES lands(land_id) ON DELETE NO ACTION,
+    FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id) ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+-- Sample SELECT Queries
+SELECT * FROM crops;
+SELECT * FROM lands;
+SELECT * FROM farmers;
