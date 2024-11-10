@@ -107,7 +107,6 @@ CREATE TABLE crops (
     planting_date DATE NOT NULL,
     harvest_date DATE,
     crop_suggestion VARCHAR(100),
-    deleted BOOLEAN DEFAULT FALSE,
     PRIMARY KEY (land_id, crop_name, planting_date),
     FOREIGN KEY (land_id) REFERENCES lands(land_id) ON DELETE NO ACTION,
     FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id) ON DELETE CASCADE ON UPDATE CASCADE
