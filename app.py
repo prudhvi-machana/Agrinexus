@@ -12,7 +12,7 @@ app.secret_key = 'your_secret_key'
 
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
-app.config['MYSQL_PASSWORD'] = '8367317195'
+app.config['MYSQL_PASSWORD'] = 'jayanthi@21'
 app.config['MYSQL_DB'] = 'AgriData'
 
 mysql = MySQL(app)
@@ -168,6 +168,63 @@ def farmer_details():
     # Render the farmer details template
     return render_template('farmer_details.html', farmer=farmer)
 
+@app.route('/farmer_lands')
+def farmer_lands():
+    aadhar_id = session.get('aadhar_id')  # Get AADHAR ID from session
+    if not aadhar_id:
+        flash("You need to log in first.", "error")
+        return redirect(url_for('farmer_login'))
+
+    search_avail_land = request.args.get('search_avail_land')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+    
+    if search_avail_land:  # If there's a search query
+        cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s AND location LIKE %s AND deleted = FALSE", 
+                       (aadhar_id, '%' + search_avail_land + '%'))
+
+    else:
+        cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s AND deleted = FALSE", (aadhar_id,))  # Only present lands
+
+    lands = cursor.fetchall()
+    
+    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+    farmer = cursor.fetchone()
+    cursor.close()
+
+    # Render the farmer lands template
+    return render_template('farmer_lands.html', lands=lands, farmer=farmer)
+
+
+#Route to crops
+@app.route('/farmer_crops')
+def farmer_crops():
+    aadhar_id = session.get('aadhar_id')  # Get AADHAR ID from session
+    if not aadhar_id:
+        flash("You need to log in first.", "error")
+        return redirect(url_for('farmer_login'))
+
+    search_avail_crop = request.args.get('search_avail_crop')
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+
+    # Search for specific crops if there's a search query
+    if search_avail_crop:
+        cursor.execute("""SELECT * FROM crops WHERE aadhar_id = %s AND crop_name LIKE %s """, 
+                        (aadhar_id, '%' + search_avail_crop + '%'))
+    else:
+        # Fetch present crops (deleted = 0)
+        cursor.execute("""SELECT * FROM crops WHERE aadhar_id = %s """, (aadhar_id,))
+
+    crops = cursor.fetchall()
+
+    # Fetch farmer details
+    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+    farmer = cursor.fetchone()
+    cursor.close()
+
+    # Render the farmer crops template
+    return render_template('farmer_crops.html', crops=crops,farmer=farmer)
+
 
 # Route for displaying loans taken by the logged-in farmer
 @app.route('/farmer_loans_taken')
@@ -253,90 +310,6 @@ def farmer_schemes_taken():
 
     # Render the farmer schemes taken template
     return render_template('farmer_schemes_taken.html', schemes_taken=schemes_taken, farmer=farmer)
-
-@app.route('/farmer_lands')
-def farmer_lands():
-    aadhar_id = session.get('aadhar_id')  # Get AADHAR ID from session
-    if not aadhar_id:
-        flash("You need to log in first.", "error")
-        return redirect(url_for('farmer_login'))
-
-    search_avail_land = request.args.get('search_avail_land')
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    
-    if search_avail_land:  # If there's a search query
-        cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s AND location LIKE %s AND deleted = 0", 
-                       (aadhar_id, '%' + search_avail_land + '%'))
-        present_lands = cursor.fetchall()
-    else:
-        cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s AND deleted = 0", (aadhar_id,))
-        present_lands = cursor.fetchall()
-
-   
-
-    # Fetch farmer information
-    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
-    farmer = cursor.fetchone()
-    cursor.close()
-
-    # Render the farmer lands template
-    return render_template('farmer_lands.html', present_lands=present_lands, farmer=farmer)
-
-#Route to crops
-@app.route('/farmer_crops')
-def farmer_crops():
-    aadhar_id = session.get('aadhar_id')  # Get AADHAR ID from session
-    if not aadhar_id:
-        flash("You need to log in first.", "error")
-        return redirect(url_for('farmer_login'))
-
-    search_avail_crop = request.args.get('search_avail_crop')
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    try:
-        # Search for specific crops if there's a search query
-        if search_avail_crop:
-            cursor.execute("""
-                SELECT * FROM crops
-                WHERE aadhar_id = %s AND crop_name LIKE %s and deleted=0
-            """, (aadhar_id, '%' + search_avail_crop + '%'))
-            present_crops = cursor.fetchall()
-        else:
-            # Fetch present crops (deleted = 0)
-            cursor.execute("""
-                SELECT * FROM crops
-                WHERE aadhar_id = %s AND deleted = 0
-            """, (aadhar_id,))
-            present_crops = cursor.fetchall()
-
-        # Fetch previous crops (deleted = 1)
-        cursor.execute("""
-            SELECT * FROM crops
-            WHERE aadhar_id = %s AND deleted = 1
-        """, (aadhar_id,))
-        previous_crops = cursor.fetchall()
-
-        # Fetch farmer details
-        cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
-        farmer = cursor.fetchone()
-
-    except Exception as e:
-        flash("An error occurred while fetching crop data.", "error")
-        print("Database error:", e)
-        return redirect(url_for('farmer_login'))
-    finally:
-        cursor.close()
-
-    # Render the farmer crops template
-    return render_template(
-        'farmer_crops.html',
-        present_crops=present_crops,
-        previous_crops=previous_crops,
-        farmer=farmer
-    )
-
-
-
 
 
 
@@ -591,6 +564,338 @@ def deletefarmer(aadhar_id):
         cursor.close()
 
     return redirect(url_for('existingfarmers'))
+
+
+# Route to manage lands based on aadhar_id
+@app.route('/manage_lands/<aadhar_id>', methods=['GET'])
+def manage_lands(aadhar_id):
+    if 'auth_email' not in session:
+        flash('You need to log in to access this page.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Check if the farmer exists by aadhar_id
+    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+    farmer = cursor.fetchone()
+    if not farmer:
+        flash("Farmer not found.", 'error')
+        return redirect(url_for('home'))
+    
+    # Get lands owned by the farmer
+    cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s and deleted=False", (aadhar_id,))
+    lands = cursor.fetchall()
+
+    cursor.close()
+    return render_template('manage_lands.html', farmer=farmer, lands=lands)
+
+# Route to search lands owned by a farmer
+@app.route('/search_lands/<aadhar_id>', methods=['GET'])
+def search_lands(aadhar_id):
+    if 'auth_email' not in session:
+        flash('You need to log in to access this page.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Check if farmer exists by aadhar_id
+    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+    farmer = cursor.fetchone()
+    if not farmer:
+        flash("Farmer not found.", 'error')
+        return redirect(url_for('home'))
+
+    # Search for lands
+    search_land = request.args.get('search_land')  # Accessing search query from URL
+    if search_land:
+        cursor.execute("""
+            SELECT * FROM lands 
+            WHERE aadhar_id = %s AND location LIKE  %s and deleted=False
+        """, (aadhar_id, '%' + search_land + '%'))
+    else:
+        cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s and deleted=False", (aadhar_id,))
+
+    lands = cursor.fetchall()
+    cursor.close()
+
+    return render_template('manage_lands.html', farmer=farmer, lands=lands)
+
+# Route to add a new land for a farmer
+@app.route('/add_land/<aadhar_id>', methods=['POST'])
+def add_land(aadhar_id):
+    if 'auth_email' not in session:
+        flash('You do not have permission to perform this action.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor()
+
+    location = request.form['location']
+    soil_type = request.form['soil_type']
+    land_size = request.form['land_size']
+
+    try:
+        cursor.execute("""
+            INSERT INTO lands (aadhar_id, location, soil_type, land_size)
+            VALUES (%s, %s, %s, %s)
+        """, (aadhar_id, location, soil_type, land_size))
+        mysql.connection.commit()
+        flash("Land added successfully!", 'success')
+    except MySQLdb.Error as err:
+        mysql.connection.rollback()
+        flash(f"Error adding land: {err}", 'error')
+    
+    cursor.close()
+    print(request.form)  # This will show you what keys are present in the form data
+    return redirect(url_for('manage_lands', aadhar_id=aadhar_id))
+
+
+# Route to update land information
+@app.route('/update_land/<aadhar_id>/<int:land_id>', methods=['POST'])
+def update_land(aadhar_id, land_id):
+    if 'auth_email' not in session :
+        flash('You do not have permission to perform this action.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor()
+    
+    location = request.form.get('location')
+    soil_type = request.form.get('soil_type')
+    land_size = request.form.get('land_size')
+
+    try:
+        cursor.execute("""
+            UPDATE lands 
+            SET location = %s,soil_type=%s,land_size=%s
+            WHERE aadhar_id = %s AND land_id = %s
+        """, (location,soil_type,land_size ,aadhar_id, land_id))
+        mysql.connection.commit()
+        flash("Land information updated successfully!", 'success')
+    except MySQLdb.Error as err:
+        mysql.connection.rollback()
+        flash(f"Error updating land information: {err}", 'error')
+
+    cursor.close()
+    return redirect(url_for('manage_lands', aadhar_id=aadhar_id))
+
+
+
+# Route to delete a land record
+@app.route('/delete_land/<aadhar_id>/<int:land_id>', methods=['POST'])
+def delete_land(aadhar_id, land_id):
+    if 'auth_email' not in session:
+        flash('You do not have permission to perform this action.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor()
+
+    try:
+        # Soft delete by setting the deleted flag to TRUE
+        cursor.execute("""
+            UPDATE lands 
+            SET deleted = TRUE 
+            WHERE aadhar_id = %s AND land_id = %s and deleted=False
+        """, (aadhar_id, land_id))
+        mysql.connection.commit()
+        flash("Land deleted successfully!", 'success')
+    except MySQLdb.Error as err:
+        mysql.connection.rollback()  # Rollback in case of error
+        flash(f"Error deleting land: {err}", 'error')
+    finally:
+        cursor.close()
+
+    return redirect(url_for('manage_lands', aadhar_id=aadhar_id))
+
+
+#route to manage_crops
+
+@app.route('/manage_crops/<aadhar_id>', methods=['GET'])
+def manage_crops(aadhar_id):
+    if 'auth_email' not in session:
+        flash('You need to log in to access this page.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Check if the farmer exists by aadhar_id
+    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+    farmer = cursor.fetchone()
+    if not farmer:
+        flash("Farmer not found.", 'error')
+        return redirect(url_for('home'))
+    
+    # Get lands owned by the farmer
+    cursor.execute("SELECT land_id FROM lands WHERE aadhar_id = %s AND deleted = FALSE", (aadhar_id,))
+    available_lands = cursor.fetchall()
+  
+    # Get crops owned by the farmer
+    cursor.execute("SELECT * FROM crops WHERE aadhar_id = %s", (aadhar_id,))
+    crops = cursor.fetchall()
+
+    cursor.close()
+    return render_template('manage_crops.html', farmer=farmer, crops=crops, available_lands=available_lands)
+
+# Route to add a new crop
+@app.route('/add_crop/<aadhar_id>', methods=['POST'])
+def add_crop(aadhar_id):
+    if 'auth_email' not in session:
+        flash('You do not have permission to perform this action.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    land_id = request.form['land_id']
+    crop_name = request.form['crop_name']
+    crop_size = float(request.form['crop_size'])
+    N_percent = float(request.form['N_percent'])
+    P_percent = float(request.form['P_percent'])
+    K_percent = float(request.form['K_percent'])
+    soil_ph = float(request.form['soil_ph'])
+    planting_date = request.form['planting_date']
+    harvest_date = request.form.get('harvest_date') or None
+    crop_suggestion = request.form.get('crop_suggestion') or None
+    
+    # Get land size
+    cursor.execute("SELECT land_size FROM lands WHERE land_id = %s", (land_id,))
+    land = cursor.fetchone()
+    planting_date_obj = datetime.strptime(planting_date, '%Y-%m-%d')
+    if harvest_date:
+        harvest_date_obj = datetime.strptime(harvest_date, '%Y-%m-%d')
+        
+        # Check if planting_date is before harvest_date
+        if planting_date_obj >= harvest_date_obj:
+            flash("Planting date must be earlier than harvest date.", "error")
+            return redirect(url_for('manage_crops', aadhar_id=aadhar_id))  # Redirect back to the form page
+
+    
+    if not (0 <= N_percent <= 100):
+        flash("Invalid Nitogen Percent value. Value sholud be in between 0 and 100", 'error')
+        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+    if not (0 <= P_percent <= 100):
+        flash("Invalid Phosphorus Percent value. Value sholud be in between 0 and 100", 'error')
+        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+    if not (0 <= K_percent <= 100):
+        flash("Invalid Pottasium Percent value. Value sholud be in between 0 and 100", 'error')
+        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+    if not (0 <= soil_ph <= 14):
+        flash("Invalid soil pH value. Value sholud be in between 0 and 14", 'error')
+        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+
+    if land:
+        land_size = land['land_size']
+
+        # Check if the total crop size exceeds the land size
+        cursor.execute("""
+            SELECT SUM(crop_size) AS total_crop_size
+            FROM crops 
+            WHERE land_id = %s AND aadhar_id = %s 
+        """, (land_id, aadhar_id))
+        result = cursor.fetchone()
+        total_crop_size = result['total_crop_size'] or 0
+
+        if float(total_crop_size) + float(crop_size) > float(land_size):
+            flash(f"Cannot add crop. Total crop size exceeds land size ({land_size} acres).", 'error')
+            return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+        
+    cursor.execute("""SELECT * FROM crops WHERE land_id = %s AND crop_name = %s AND planting_date = %s AND aadhar_id = %s""",(land_id, crop_name,planting_date, aadhar_id))
+    existing_crop = cursor.fetchone()
+
+    if existing_crop:
+        flash("A crop with this name and planting date already exists for this farmer.", 'error')
+        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+    try:
+        # Insert new crop into the database
+        cursor.execute("""
+            INSERT INTO crops (land_id, crop_name, crop_size,N_percent,P_percent,K_percent,soil_ph,planting_date, harvest_date, crop_suggestion, aadhar_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)
+        """, (land_id, crop_name, crop_size, N_percent,P_percent,K_percent,soil_ph, planting_date, harvest_date, crop_suggestion, aadhar_id))
+
+        mysql.connection.commit()
+        flash('Crop added successfully.', 'success')
+    except MySQLdb as e:
+        mysql.connection.rollback()
+        flash(f'Error storing data: {e}', 'error')
+
+    cursor.close()
+    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+
+#Route to search the crop
+@app.route('/search_crops/<aadhar_id>', methods=['GET'])
+def search_crops(aadhar_id):
+    if 'auth_email' not in session:
+        flash('You need to log in to access this page.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    # Check if farmer exists by aadhar_id
+    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+    farmer = cursor.fetchone()
+    if not farmer:
+        flash("Farmer not found.", 'error')
+        return redirect(url_for('home'))
+
+    # Get search query from URL
+    search_crop = request.args.get('search_crop')  # Accessing search query from URL
+    if search_crop:
+        # Search for crops with name like the search query
+        cursor.execute("""
+            SELECT * FROM crops 
+            WHERE aadhar_id = %s AND crop_name LIKE %s 
+        """, (aadhar_id, '%' + search_crop + '%'))
+    else:
+        # If no search query is provided, return all crops
+        cursor.execute("SELECT * FROM crops WHERE land_id = %s", (aadhar_id,))
+
+    crops = cursor.fetchall()
+    cursor.close()
+
+    return render_template('manage_crops.html', farmer=farmer, crops=crops)
+
+
+# Route to update a crop
+@app.route('/update_crop/<aadhar_id>/<land_id>/<crop_name>/<planting_date>', methods=['POST'])
+def update_crop(aadhar_id, land_id, crop_name, planting_date):
+    if 'auth_email' not in session:
+        flash('You do not have permission to perform this action.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    harvest_date = request.form.get('harvest_date')
+    crop_suggestion = request.form.get('crop_suggestion')
+
+    cursor.execute("""
+        UPDATE crops
+        SET harvest_date = %s, crop_suggestion = %s
+        WHERE land_id = %s AND crop_name = %s AND planting_date = %s
+    """, (harvest_date, crop_suggestion, land_id, crop_name, planting_date))
+
+    mysql.connection.commit()
+    cursor.close()
+    flash('Crop updated successfully.', 'success')
+
+    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+
+# Route to delete a crop
+@app.route('/delete_crop/<aadhar_id>/<land_id>/<crop_name>/<planting_date>', methods=['POST'])
+def delete_crop(aadhar_id, land_id, crop_name, planting_date):
+    if 'auth_email' not in session:
+        flash('You do not have permission to perform this action.', 'error')
+        return redirect(url_for('auth_login'))
+
+    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+
+    cursor.execute("""
+        DELETE FROM crops 
+        WHERE land_id = %s AND crop_name = %s AND planting_date = %s
+    """, (land_id, crop_name, planting_date))
+
+    mysql.connection.commit()
+    cursor.close()
+    flash('Crop deleted successfully.', 'success')
+
+    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
+
 
 # Route to view/manage loans
 @app.route('/manage_loans')
@@ -1388,327 +1693,6 @@ def delete_scheme_taken(aadhar_id, scheme_name, approval_date):
     
     return redirect(url_for('manage_schemes_taken', aadhar_id=aadhar_id))
 
-# Route to manage lands based on aadhar_id
-@app.route('/manage_lands/<aadhar_id>', methods=['GET'])
-def manage_lands(aadhar_id):
-    if 'auth_email' not in session:
-        flash('You need to log in to access this page.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    # Check if the farmer exists by aadhar_id
-    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
-    farmer = cursor.fetchone()
-    if not farmer:
-        flash("Farmer not found.", 'error')
-        return redirect(url_for('home'))
-    
-    # Get lands owned by the farmer
-    cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s and deleted=False", (aadhar_id,))
-    lands = cursor.fetchall()
-
-    cursor.close()
-    return render_template('manage_lands.html', farmer=farmer, lands=lands)
-
-# Route to search lands owned by a farmer
-@app.route('/search_lands/<aadhar_id>', methods=['GET'])
-def search_lands(aadhar_id):
-    if 'auth_email' not in session:
-        flash('You need to log in to access this page.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    # Check if farmer exists by aadhar_id
-    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
-    farmer = cursor.fetchone()
-    if not farmer:
-        flash("Farmer not found.", 'error')
-        return redirect(url_for('home'))
-
-    # Search for lands
-    search_land = request.args.get('search_land')  # Accessing search query from URL
-    if search_land:
-        cursor.execute("""
-            SELECT * FROM lands 
-            WHERE aadhar_id = %s AND location LIKE  %s and deleted=False
-        """, (aadhar_id, '%' + search_land + '%'))
-    else:
-        cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s and deleted=False", (aadhar_id,))
-
-    lands = cursor.fetchall()
-    cursor.close()
-
-    return render_template('manage_lands.html', farmer=farmer, lands=lands)
-
-# Route to add a new land for a farmer
-@app.route('/add_land/<aadhar_id>', methods=['POST'])
-def add_land(aadhar_id):
-    if 'auth_email' not in session:
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor()
-
-    location = request.form['location']
-    soil_type = request.form['soil_type']
-    land_size = request.form['land_size']
-
-    try:
-        cursor.execute("""
-            INSERT INTO lands (aadhar_id, location, soil_type, land_size)
-            VALUES (%s, %s, %s, %s)
-        """, (aadhar_id, location, soil_type, land_size))
-        mysql.connection.commit()
-        flash("Land added successfully!", 'success')
-    except MySQLdb.Error as err:
-        mysql.connection.rollback()
-        flash(f"Error adding land: {err}", 'error')
-    
-    cursor.close()
-    print(request.form)  # This will show you what keys are present in the form data
-    return redirect(url_for('manage_lands', aadhar_id=aadhar_id))
-
-
-# Route to update land information
-@app.route('/update_land/<aadhar_id>/<int:land_id>', methods=['POST'])
-def update_land(aadhar_id, land_id):
-    if 'auth_email' not in session :
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor()
-    
-    location = request.form.get('location')
-    soil_type = request.form.get('soil_type')
-    land_size = request.form.get('land_size')
-
-    try:
-        cursor.execute("""
-            UPDATE lands 
-            SET location = %s,soil_type=%s,land_size=%s
-            WHERE aadhar_id = %s AND land_id = %s
-        """, (location,soil_type,land_size ,aadhar_id, land_id))
-        mysql.connection.commit()
-        flash("Land information updated successfully!", 'success')
-    except MySQLdb.Error as err:
-        mysql.connection.rollback()
-        flash(f"Error updating land information: {err}", 'error')
-
-    cursor.close()
-    return redirect(url_for('manage_lands', aadhar_id=aadhar_id))
-
-
-
-
-# Route to delete a land record
-@app.route('/delete_land/<aadhar_id>/<int:land_id>', methods=['POST'])
-def delete_land(aadhar_id, land_id):
-    if 'auth_email' not in session:
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor()
-
-    try:
-        # Soft delete by setting the deleted flag to TRUE
-        cursor.execute("""
-            UPDATE lands 
-            SET deleted = TRUE 
-            WHERE aadhar_id = %s AND land_id = %s and deleted=False
-        """, (aadhar_id, land_id))
-        mysql.connection.commit()
-        flash("Land deleted successfully!", 'success')
-    except MySQLdb.Error as err:
-        mysql.connection.rollback()  # Rollback in case of error
-        flash(f"Error deleting land: {err}", 'error')
-    finally:
-        cursor.close()
-
-    return redirect(url_for('manage_lands', aadhar_id=aadhar_id))
-
-
-
-#route to manage_crops
-
-@app.route('/manage_crops/<aadhar_id>', methods=['GET'])
-def manage_crops(aadhar_id):
-    if 'auth_email' not in session:
-        flash('You need to log in to access this page.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    # Check if the farmer exists by aadhar_id
-    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
-    farmer = cursor.fetchone()
-    if not farmer:
-        flash("Farmer not found.", 'error')
-        return redirect(url_for('home'))
-    
-    # Get lands owned by the farmer
-    cursor.execute("SELECT land_id, land_size FROM lands WHERE aadhar_id = %s AND deleted = FALSE", (aadhar_id,))
-    available_lands = cursor.fetchall()
-    
-    # Get crops owned by the farmer
-    cursor.execute("SELECT * FROM crops WHERE aadhar_id = %s AND deleted = FALSE", (aadhar_id,))
-    crops = cursor.fetchall()
-
-    cursor.close()
-    return render_template('manage_crops.html', farmer=farmer, crops=crops, available_lands=available_lands)
-
-# Route to add a new crop
-@app.route('/add_crop/<aadhar_id>', methods=['POST'])
-def add_crop(aadhar_id):
-    if 'auth_email' not in session:
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    land_id = request.form['land_id']
-    crop_name = request.form['crop_name']
-    crop_size = float(request.form['crop_size'])
-    N_percent = float(request.form['N_percent'])
-    P_percent = float(request.form['P_percent'])
-    K_percent = float(request.form['K_percent'])
-    soil_ph = float(request.form['soil_ph'])
-    planting_date = request.form['planting_date']
-    harvest_date = request.form.get('harvest_date')
-    crop_suggestion = request.form.get('crop_suggestion')
-    
-    # Get land size
-    cursor.execute("SELECT land_size FROM lands WHERE land_id = %s", (land_id,))
-    land = cursor.fetchone()
-    planting_date_obj = datetime.strptime(planting_date, '%Y-%m-%d')
-    if harvest_date:
-        harvest_date_obj = datetime.strptime(harvest_date, '%Y-%m-%d')
-        
-        # Check if planting_date is before harvest_date
-        if planting_date_obj >= harvest_date_obj:
-            flash("Planting date must be earlier than harvest date.", "error")
-            return redirect(url_for('manage_crops', aadhar_id=aadhar_id))  # Redirect back to the form page
-
-    
-    if not (0 <= N_percent <= 100):
-        flash("Invalid Nitogen Percent value. Value sholud be in between 0 and 100", 'error')
-        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-    if not (0 <= P_percent <= 100):
-        flash("Invalid Phosphorus Percent value. Value sholud be in between 0 and 100", 'error')
-        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-    if not (0 <= K_percent <= 100):
-        flash("Invalid Pottasium Percent value. Value sholud be in between 0 and 100", 'error')
-        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-    if not (0 <= soil_ph <= 14):
-        flash("Invalid soil pH value. Value sholud be in between 0 and 14", 'error')
-        return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-
-    if land:
-        land_size = land['land_size']
-
-        # Check if the total crop size exceeds the land size
-        cursor.execute("""
-            SELECT SUM(crop_size) AS total_crop_size
-            FROM crops 
-            WHERE land_id = %s AND aadhar_id = %s AND deleted = FALSE
-        """, (land_id, aadhar_id))
-        result = cursor.fetchone()
-        total_crop_size = result['total_crop_size'] or 0
-
-        if float(total_crop_size) + float(crop_size) > float(land_size):
-            flash(f"Cannot add crop. Total crop size exceeds land size ({land_size} acres).", 'error')
-            return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-
-        # Insert new crop into the database
-        cursor.execute("""
-            INSERT INTO crops (land_id, crop_name, crop_size,N_percent,P_percent,K_percent,soil_ph,planting_date, harvest_date, crop_suggestion, aadhar_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s,%s,%s,%s)
-        """, (land_id, crop_name, crop_size, N_percent,P_percent,K_percent,soil_ph, planting_date, harvest_date, crop_suggestion, aadhar_id))
-
-        mysql.connection.commit()
-        flash('Crop added successfully.', 'success')
-
-    cursor.close()
-    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-
-#Route to search the crop
-@app.route('/search_crops/<aadhar_id>', methods=['GET'])
-def search_crops(aadhar_id):
-    if 'auth_email' not in session:
-        flash('You need to log in to access this page.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    # Check if farmer exists by aadhar_id
-    cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
-    farmer = cursor.fetchone()
-    if not farmer:
-        flash("Farmer not found.", 'error')
-        return redirect(url_for('home'))
-
-    # Get search query from URL
-    search_crop = request.args.get('search_crop')  # Accessing search query from URL
-    if search_crop:
-        # Search for crops with name like the search query
-        cursor.execute("""
-            SELECT * FROM crops 
-            WHERE aadhar_id = %s AND crop_name LIKE %s AND deleted=False
-        """, (aadhar_id, '%' + search_crop + '%'))
-    else:
-        # If no search query is provided, return all crops
-        cursor.execute("SELECT * FROM crops WHERE land_id = %s AND deleted=False", (aadhar_id,))
-
-    crops = cursor.fetchall()
-    cursor.close()
-
-    return render_template('manage_crops.html', farmer=farmer, crops=crops)
-
-
-# Route to update a crop
-@app.route('/update_crop/<aadhar_id>/<land_id>/<crop_name>/<planting_date>', methods=['POST'])
-def update_crop(aadhar_id, land_id, crop_name, planting_date):
-    if 'auth_email' not in session:
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    harvest_date = request.form.get('harvest_date')
-    crop_suggestion = request.form.get('crop_suggestion')
-
-    cursor.execute("""
-        UPDATE crops
-        SET harvest_date = %s, crop_suggestion = %s
-        WHERE land_id = %s AND crop_name = %s AND planting_date = %s
-    """, (harvest_date, crop_suggestion, land_id, crop_name, planting_date))
-
-    mysql.connection.commit()
-    cursor.close()
-    flash('Crop updated successfully.', 'success')
-
-    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-# Route to delete a crop
-@app.route('/delete_crop/<aadhar_id>/<land_id>/<crop_name>/<planting_date>', methods=['POST'])
-def delete_crop(aadhar_id, land_id, crop_name, planting_date):
-    if 'auth_email' not in session:
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    cursor.execute("""
-        UPDATE crops
-        SET deleted = TRUE
-        WHERE land_id = %s AND crop_name = %s AND planting_date = %s
-    """, (land_id, crop_name, planting_date))
-
-    mysql.connection.commit()
-    cursor.close()
-    flash('Crop deleted successfully.', 'success')
-
-    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
 
 
 if __name__ == '__main__':
