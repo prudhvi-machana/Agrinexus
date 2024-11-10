@@ -22,41 +22,33 @@
         {% endif %}
     {% endwith %}
 
-    <!-- Check if lands is empty -->
-    {% if not lands %}
-        <!-- Message for No land Present -->
-        <div class="no-lands-message" style="text-align: center; margin: 5px 0;">
-            <h2 style="font-size: 20px; color: #333;">No Land Present</h2>
-        </div>
-    {% else %}
         
-        <form id="search-form" action="{{ url_for('farmer_lands', aadhar_id=farmer['aadhar_id']) }}" method="GET" class="search-form">
-            <input type="text" name="search_avail_land" placeholder="Search by Location" required class="input-field">
-            <button type="submit" class="search-button">Search</button>
-        </form>
+    <form id="search-form" action="{{ url_for('farmer_lands', aadhar_id=farmer['aadhar_id']) }}" method="GET" class="search-form">
+        <input type="text" name="search_avail_land" placeholder="Search by Location" required class="input-field">
+        <button type="submit" class="search-button">Search</button>
+    </form>
 
-            <div class="table-container">
-                <table id="lands-table">
-                    <thead>
+        <div class="table-container">
+            <table id="lands-table">
+                <thead>
+                    <tr>
+                        <th>Land ID</th>
+                        <th>Location</th>
+                        <th>Soil Type</th>
+                        <th>Land Size</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for land in lands %}
                         <tr>
-                            <th>Land ID</th>
-                            <th>Location</th>
-                            <th>Soil Type</th>
-                            <th>Land Size</th>
+                            <td>{{ land['land_id'] }}</td>
+                            <td>{{ land['location'] }}</td>
+                            <td>{{ land['soil_type'] }}</td>
+                            <td>{{ land['land_size'] }}</td>
                         </tr>
-                    </thead>
-                    <tbody>
-                        {% for land in lands %}
-                            <tr>
-                                <td>{{ land['land_id'] }}</td>
-                                <td>{{ land['location'] }}</td>
-                                <td>{{ land['soil_type'] }}</td>
-                                <td>{{ land['land_size'] }}</td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>     
-    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>     
 </div>
 {% endblock %}
