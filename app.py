@@ -181,11 +181,13 @@ def farmer_lands():
     if search_avail_land:  # If there's a search query
         cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s AND location LIKE %s AND deleted = FALSE", 
                        (aadhar_id, '%' + search_avail_land + '%'))
+        lands = cursor.fetchall()
+        if not lands:
+            flash('No land found for this location.', 'error')
 
     else:
         cursor.execute("SELECT * FROM lands WHERE aadhar_id = %s AND deleted = FALSE", (aadhar_id,))  # Only present lands
-
-    lands = cursor.fetchall()
+        lands = cursor.fetchall()
     
     cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
     farmer = cursor.fetchone()
@@ -211,11 +213,13 @@ def farmer_crops():
     if search_avail_crop:
         cursor.execute("""SELECT * FROM crops WHERE aadhar_id = %s AND crop_name LIKE %s """, 
                         (aadhar_id, '%' + search_avail_crop + '%'))
+        crops = cursor.fetchall()
+        if not crops:
+            flash('No crop found for this type.', 'error')
     else:
         # Fetch present crops (deleted = 0)
         cursor.execute("""SELECT * FROM crops WHERE aadhar_id = %s """, (aadhar_id,))
-
-    crops = cursor.fetchall()
+        crops = cursor.fetchall()
 
     # Fetch farmer details
     cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
@@ -241,11 +245,16 @@ def farmer_loans_taken():
         # Fetch loans taken by the farmer based on the search query
         cursor.execute("SELECT * FROM loans_taken WHERE aadhar_id = %s AND loan_type LIKE %s", 
                        (aadhar_id, '%' + search_loan_taken + '%'))
+        
+        loans_taken = cursor.fetchall()
+        if not loans_taken:
+            flash('No loan taken found for this type.', 'error')
+
     else:
         # Fetch all loans taken by the farmer
         cursor.execute("SELECT * FROM loans_taken WHERE aadhar_id = %s", (aadhar_id,))
 
-    loans_taken = cursor.fetchall()  # Get all loans taken by the farmer
+        loans_taken = cursor.fetchall()  # Get all loans taken by the farmer
 
     cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
     farmer = cursor.fetchone()
@@ -269,11 +278,14 @@ def farmer_subsidies_taken():
         # Fetch subsidies taken by the farmer based on the search query
         cursor.execute("SELECT * FROM subsidies_taken WHERE aadhar_id = %s AND subsidy_name LIKE %s", 
                        (aadhar_id, '%' + search_subsidy_taken + '%'))
+        subsidies_taken = cursor.fetchall()
+        if not subsidies_taken:
+            flash('No subsidy taken found for this type.', 'error')
+
     else:
         # Fetch all subsidies taken by the farmer
         cursor.execute("SELECT * FROM subsidies_taken WHERE aadhar_id = %s", (aadhar_id,))
-
-    subsidies_taken = cursor.fetchall()  # Get all subsidies taken by the farmer
+        subsidies_taken = cursor.fetchall()
 
     cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
     farmer = cursor.fetchone()
@@ -298,11 +310,14 @@ def farmer_schemes_taken():
         # Fetch schemes taken by the farmer based on the search query
         cursor.execute("SELECT * FROM schemes_taken WHERE aadhar_id = %s AND scheme_name LIKE %s", 
                        (aadhar_id, '%' + search_scheme_taken + '%'))
+        schemes_taken = cursor.fetchall()
+        if not schemes_taken:
+            flash('No scheme taken found for this type.', 'error')
+
     else:
         # Fetch all schemes taken by the farmer
         cursor.execute("SELECT * FROM schemes_taken WHERE aadhar_id = %s", (aadhar_id,))
-
-    schemes_taken = cursor.fetchall()  # Get all schemes taken by the farmer
+        schemes_taken = cursor.fetchall()  # Get all schemes taken by the farmer
 
     cursor.execute("SELECT * FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
     farmer = cursor.fetchone()
