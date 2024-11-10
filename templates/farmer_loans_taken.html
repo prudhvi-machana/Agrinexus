@@ -58,10 +58,6 @@
                             <td>{{ loan['amount_taken'] }}</td>
                             <td>{{ loan['status'] }}</td>  <!-- Display Status -->
                         </tr>
-                    {% else %}
-                        <tr>
-                            <td colspan="6" style="text-align: center;">No loans available.</td>
-                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
