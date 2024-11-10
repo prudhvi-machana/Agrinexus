@@ -20,15 +20,6 @@
             </div>
         {% endif %}
     {% endwith %}
-
-
-    <!-- Check if schemes_taken is empty -->
-    {% if not schemes_taken %}
-        <!-- Message for No Schemes Found -->
-        <div class="no-schemes-message" style="text-align: center; margin: 5px 0;">
-            <h2 style="font-size: 20px; color: #333;">No Scheme Taken</h2>
-        </div>
-    {% else %}
     
      <!-- Search Bar -->
      <form id="search-form" action="{{ url_for('farmer_schemes_taken') }}" method="GET" class="search-form">
@@ -54,8 +45,5 @@
                 </tbody>
             </table>
         </div>
-    {% endif %}
 </div>
 {% endblock %}
-
-
