@@ -47,3 +47,27 @@
 .btn-login:hover {
     background-color: #2563eb; /* Tailwind's blue-500 */
 }
+
+.footer {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    padding: 10px;
+    background-color: white;
+    color: black;
+    text-align: right;
+    width: 15%;
+    font-size: 14px;
+}
+
+.help-desk {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    font-weight: bold;
+}
+
+.contact-number {
+    font-size: 16px;
+    font-weight: bold;
+}
