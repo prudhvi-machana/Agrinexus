@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Available Schemes{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles1.css') }}">
+<style>
+        
+    /* Scheme Table */
+    #scheme-table {
+        width: 100%;
+        border-collapse: collapse; /* Ensure borders are combined */
+    }
+
+    #scheme-table th,
+    #scheme-table td {
+        border: 1px solid #ddd; /* Add borders between columns */
+        padding: 8px; /* Ensure padding for cells */
+        text-align: left; /* Align text to the left */
+    }
+
+    #scheme-table th {
+        background-color: #f2f2f2; /* Light gray for header */
+    }
+
+    /* Hover effect for table rows */
+    #scheme-table tr:hover {
+        background-color: #f1f1f1; /* Light grey on hover */
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+
+    <!-- Flash Messages for Feedback -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Search Bar -->
+    <form id="search-form" method="GET" action="{{ url_for('available_schemes') }}" class="search-form">
+        <input type="text" name="scheme_name" placeholder="Search by Scheme Name" class="input-field" required>
+        <button type="submit" class="search-button">Search</button>
+    </form>
+
+    <!-- Scheme Table -->
+    <div class="table-container">
+        <table id="scheme-table">
+            <thead>
+                <tr>
+                    <th>Scheme Name</th>
+                    <th>Description</th>
+                    <th>Eligibility</th>
+                    <th>Last Date to Apply</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for scheme in schemes %}
+                <tr>
+                    <td>{{ scheme['scheme_name'] }}</td>
+                    <td>{{ scheme['description'] }}</td>
+                    <td>{{ scheme['eligibility'] }}</td>
+                    <td>{{ scheme['last_date_apply'].strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

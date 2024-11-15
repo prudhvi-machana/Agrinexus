@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}Available Subsidies{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles1.css') }}">
+<style>
+    
+    /* Subsidy Table */
+    #subsidy-table {
+        width: 100%;
+        border-collapse: collapse; /* Ensure borders are combined */
+    }
+
+    #subsidy-table th,
+    #subsidy-table td {
+        border: 1px solid #ddd; /* Add borders between columns */
+        padding: 8px; /* Ensure padding for cells */
+        text-align: left; /* Align text to the left */
+    }
+
+    #subsidy-table th {
+        background-color: #f2f2f2; /* Light gray for header */
+    }
+
+    /* Hover effect for table rows */
+    #subsidy-table tr:hover {
+        background-color: #f1f1f1; /* Light grey on hover */
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+
+    <!-- Flash Messages for Feedback -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="flash-messages">
+                {% for category, message in messages %}
+                    <div class="flash-message {{ category }}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+    <!-- Search Bar -->
+    <form id="search-form" method="GET" action="{{ url_for('available_subsidies') }}" class="search-form">
+        <input type="text" name="subsidy_name" placeholder="Search by Subsidy Name" class="input-field" required>
+        <button type="submit" class="search-button">Search</button>
+    </form>
+
+    <!-- Subsidy Table -->
+    <div class="table-container">
+        <table id="subsidy-table">
+            <thead>
+                <tr>
+                    <th>Subsidy Name</th>
+                    <th>Description</th>
+                    <th>Eligibility</th>
+                    <th>Last Date to Apply</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for subsidy in subsidies %}
+                <tr>
+                    <td>{{ subsidy['subsidy_name'] }}</td>
+                    <td>{{ subsidy['description'] }}</td>
+                    <td>{{ subsidy['eligibility'] }}</td>
+                    <td>{{ subsidy['last_date_apply'].strftime('%Y-%m-%d') }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
