@@ -138,8 +138,8 @@ from flask import Flask, request, redirect, url_for, render_template, flash, ses
 import MySQLdb
 
 # Twilio credentials
-account_sid = 'AC58781e633a216b3b635bace520267e73'
-auth_token = 'fc991aed4aa02daca996e179e27361f7'
+account_sid = 'enter account_sid'
+auth_token = 'enter auth_token'
 client = Client(account_sid, auth_token)
 
 @app.route('/farmer_login', methods=['GET', 'POST'])
@@ -171,7 +171,7 @@ def farmer_login():
                     try:
                         message = client.messages.create(
                             body="Welcome to AgriNexus! We are glad to have you on board.",
-                            from_='+14787968736',  # Your Twilio number
+                            from_='',  # Your Twilio number
                             to=f'+91{phone_no}'    # Farmer's phone number
                         )
                         print("Welcome message sent with SID:", message.sid)
@@ -350,7 +350,7 @@ def send_notifications(client):
                 # Send SMS
                 sms = client.messages.create(
                     body=message_content,
-                    from_='+14787968736',  # Replace with your Twilio phone number
+                    from_='',  # Replace with your Twilio phone number
                     to=f'+91{phone_no}'
                 )
                 print(f"Notification sent to {phone_no}")
