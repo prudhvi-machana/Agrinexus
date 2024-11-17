@@ -43,7 +43,7 @@ CREATE TABLE crops (
     K_percent DECIMAL(5, 2) NOT NULL,
     soil_ph DECIMAL(4, 2),
     planting_date DATE NOT NULL,
-    harvest_date DATE,
+    harvest_date DATE NOT NULL,
     crop_suggestion VARCHAR(100),
     crop_active BOOLEAN DEFAULT TRUE,
     PRIMARY KEY (land_id, crop_name, planting_date),
