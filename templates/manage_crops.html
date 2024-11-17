@@ -165,9 +165,6 @@
                         <td>{{ crop['crop_suggestion'] }}</td>  
                         <td>
                             <div class="action-buttons">
-                                <form action="{{ url_for('update_crop', aadhar_id=farmer['aadhar_id'], land_id=crop['land_id'], crop_name=crop['crop_name'], planting_date=crop['planting_date']) }}" method="post">
-                                    <button type="submit" class="action-button update-button">Update</button>
-                                </form>
                                 <form action="{{ url_for('delete_crop', aadhar_id=farmer['aadhar_id'], land_id=crop['land_id'], crop_name=crop['crop_name'], planting_date=crop['planting_date']) }}" method="post">
                                     <button type="submit" class="action-button delete-button" onclick="return confirm('Are you sure you want to delete this crop?');">Delete</button>
                                 </form>
