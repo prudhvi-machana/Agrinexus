@@ -1088,6 +1088,7 @@ def update_loan(id):
         mysql.connection.commit()
         flash('Loan updated successfully!', 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash('Error updating loan: {}'.format(e), 'danger')
     finally:
         cur.close()
@@ -1104,6 +1105,7 @@ def delete_loan(loan_id):
         mysql.connection.commit()
         flash('Loan deleted successfully!', 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash('Error deleting loan: {}'.format(e), 'danger')
     finally:
         cur.close()
@@ -1242,6 +1244,7 @@ def delete_loan_taken(aadhar_id, loan_type, sanction_date):
         mysql.connection.commit()
         flash("Loan taken deleted successfully!", 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash(f'Error deleting loan: {e}', 'error')
     finally:
         cursor.close()
@@ -1337,6 +1340,7 @@ def update_subsidy(id):
         mysql.connection.commit()
         flash('Subsidy updated successfully!', 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash('Error updating subsidy: {}'.format(e), 'danger')
     finally:
         cur.close()
@@ -1353,6 +1357,7 @@ def delete_subsidy(subsidy_id):
         mysql.connection.commit()
         flash('Subsidy deleted successfully!', 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash('Error deleting subsidy: {}'.format(e), 'danger')
     finally:
         cur.close()
@@ -1470,6 +1475,7 @@ def delete_subsidy_taken(aadhar_id, subsidy_name, sanction_date):
         mysql.connection.commit()
         flash("Subsidy taken deleted successfully!", 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash(f'Error deleting subsidy: {e}', 'error')
     finally:
         cursor.close()
@@ -1564,6 +1570,7 @@ def update_scheme(id):
         mysql.connection.commit()
         flash('Scheme updated successfully!', 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash('Error updating scheme: {}'.format(e), 'danger')
     finally:
         cur.close()
@@ -1580,6 +1587,7 @@ def delete_scheme(scheme_id):
         mysql.connection.commit()
         flash('Scheme deleted successfully!', 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash('Error deleting scheme: {}'.format(e), 'danger')
     finally:
         cur.close()
@@ -1699,6 +1707,7 @@ def delete_scheme_taken(aadhar_id, scheme_name, approval_date):
         mysql.connection.commit()
         flash("Scheme taken deleted successfully!", 'success')
     except Exception as e:
+        mysql.connection.rollback()
         flash(f'Error deleting scheme: {e}', 'error')
     finally:
         cursor.close()
