@@ -836,7 +836,7 @@ def add_crop(aadhar_id):
     K_percent = float(request.form['K_percent'])
     soil_ph = float(request.form['soil_ph'])
     planting_date = request.form['planting_date']
-    harvest_date = request.form.get('harvest_date') or None
+    harvest_date = request.form.get('harvest_date') 
     
     if not (0 <= N_percent <= 100):
         flash("Invalid Nitogen Percent value. Value sholud be in between 0 and 100", 'error')
