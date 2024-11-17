@@ -957,30 +957,6 @@ def add_crop(aadhar_id):
     return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
 
 
-# Route to update a crop
-@app.route('/update_crop/<aadhar_id>/<land_id>/<crop_name>/<planting_date>', methods=['POST'])
-def update_crop(aadhar_id, land_id, crop_name, planting_date):
-    if 'auth_email' not in session:
-        flash('You do not have permission to perform this action.', 'error')
-        return redirect(url_for('auth_login'))
-
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-
-    harvest_date = request.form.get('harvest_date')
-    crop_suggestion = request.form.get('crop_suggestion')
-
-    cursor.execute("""
-        UPDATE crops
-        SET harvest_date = %s, crop_suggestion = %s
-        WHERE land_id = %s AND crop_name = %s AND planting_date = %s
-    """, (harvest_date, crop_suggestion, land_id, crop_name, planting_date))
-
-    mysql.connection.commit()
-    cursor.close()
-    flash('Crop updated successfully.', 'success')
-
-    return redirect(url_for('manage_crops', aadhar_id=aadhar_id))
-
 # Route to delete a crop
 @app.route('/delete_crop/<aadhar_id>/<land_id>/<crop_name>/<planting_date>', methods=['POST'])
 def delete_crop(aadhar_id, land_id, crop_name, planting_date):
