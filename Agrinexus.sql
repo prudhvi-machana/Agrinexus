@@ -68,7 +68,7 @@ CREATE TABLE loans_taken (
     sanction_date DATE NOT NULL,
     due_date DATE NOT NULL,
     amount_taken DECIMAL(10, 2) NOT NULL,
-    status ENUM('paid', 'unpaid') NOT NULL,
+    status ENUM('paid', 'unpaid') NOT NULL DEFAULT 'unpaid',
     PRIMARY KEY (loan_type, aadhar_id, sanction_date),  -- Composite Primary Key
     FOREIGN KEY (loan_type) REFERENCES loans(loan_type) ON DELETE NO ACTION,  -- Reference by loan_type
     FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id) ON DELETE CASCADE ON UPDATE CASCADE  -- Cascades on both delete and update
@@ -121,14 +121,14 @@ CREATE TABLE farmer_notifications (
     sent_at DATETIME DEFAULT CURRENT_TIMESTAMP,                  -- Timestamp when the notification was sent
     FOREIGN KEY (farmer_id) REFERENCES farmers(farmer_id) on DELETE CASCADE ON UPDATE CASCADE -- Link to the farmers table
 );
-#notification for loans
+#loan notifications
 CREATE TABLE notifications (
     notification_id INT AUTO_INCREMENT PRIMARY KEY,
-    aadhar_id VARCHAR(12) NOT NULL,  -- Refers to Aadhar ID in farmers table
+    farmer_id INT NOT NULL,  -- Refers to farmer_id in farmers table
     message VARCHAR(255) NOT NULL,   -- The notification message
     notification_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,  -- Timestamp of notification creation
     is_sent BOOLEAN DEFAULT FALSE,  -- Indicates whether the notification is sent
-    FOREIGN KEY (aadhar_id) REFERENCES farmers(aadhar_id) ON DELETE CASCADE -- Cascade delete
+    FOREIGN KEY (farmer_id) REFERENCES farmers(farmer_id) on DELETE CASCADE ON UPDATE CASCADE -- Cascade delete
 );
 
 
