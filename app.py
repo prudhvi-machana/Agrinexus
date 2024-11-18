@@ -332,16 +332,16 @@ def send_notifications(client):
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
 
     # Fetch unsent notifications
-    cursor.execute("SELECT notification_id, aadhar_id, message FROM notifications WHERE is_sent = FALSE")
+    cursor.execute("SELECT notification_id, farmer_id, message FROM notifications WHERE is_sent = FALSE")
     notifications = cursor.fetchall()
 
     for notification in notifications:
         notification_id = notification['notification_id']
-        aadhar_id = notification['aadhar_id']
+        farmer_id = notification['farmer_id']
         message_content = notification['message']
 
         # Fetch farmer's phone number
-        cursor.execute("SELECT phone_no FROM farmers WHERE aadhar_id = %s", (aadhar_id,))
+        cursor.execute("SELECT phone_no FROM farmers WHERE farmer_id = %s", (farmer_id,))
         phone_no_data = cursor.fetchone()
 
         if phone_no_data:
