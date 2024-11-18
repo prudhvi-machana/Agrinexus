@@ -47,3 +47,52 @@
 .btn-login:hover {
     background-color: #2563eb; /* Tailwind's blue-500 */
 }
+
+
+.footer {
+    position: relative; /* Ensures it stays below the content */
+    background-color: white; /* Neutral background color */
+    color: black; /* Contrasting text color */
+    padding: 1rem; /* Adds sufficient spacing */
+    text-align: center; /* Center-aligns text */
+    width: 100%; /* Full width of the page */
+    border-top: 1px solid #e0e0e0; /* Subtle border for definition */
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1); /* Light shadow for elevation */
+    font-size: 0.9rem; /* Slightly smaller font size */
+}
+
+.help-desk {
+    display: flex;
+    flex-direction: column; /* Stacks help desk items vertically */
+    align-items: center; /* Centers content horizontally */
+    font-weight: bold;
+}
+
+.help-desk h3 {
+    margin: 0 0 0.5rem; /* Adds spacing below the title */
+    font-size: 1.1rem; /* Slightly larger font for the title */
+    color: #3b82f6; /* Matches button theme color */
+}
+
+.contact-number {
+    font-size: 1rem; /* Readable size for contact number */
+    font-weight: normal; /* Normal weight for contrast */
+    color: #6c757d; /* Subtle text color */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .footer {
+        text-align: center; /* Centers all text */
+        padding: 1rem; /* Adjusts padding for smaller screens */
+    }
+
+    .help-desk {
+        align-items: center; /* Centers help desk content */
+    }
+
+    .help-desk h3, 
+    .contact-number {
+        font-size: 1rem; /* Adjust font size for smaller screens */
+    }
+}
