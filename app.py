@@ -133,14 +133,18 @@ def auth_logout():
     flash('You have been logged out.', 'success')
     return redirect(url_for('auth_login'))  # Redirect to the login page
 #Farmer_login Page
+import os
+from dotenv import load_dotenv
+
+load_dotenv() 
 from twilio.rest import Client
 from flask import Flask, request, redirect, url_for, render_template, flash, session
 import MySQLdb
 
 # Twilio credentials
-account_sid = 'enter account_sid'
-auth_token = 'enter auth_token'
-client = Client(account_sid, auth_token)
+account_sid = os.getenv("TWILIO_ACCOUNT_SID")
+auth_token = os.getenv("TWILIO_AUTH_TOKEN")
+client = Client(username=account_sid, password=auth_token)
 
 @app.route('/farmer_login', methods=['GET', 'POST'])
 def farmer_login():
@@ -160,36 +164,35 @@ def farmer_login():
                 session['farmer_name'] = farmer['farmer_name']
 
                 if farmer['first_login']:
-                    # Log notification
+                    # Insert welcome notification
                     cursor.execute("""
-                        INSERT INTO farmer_notifications (farmer_id, notification_type, notification_message, sent)
+                        INSERT INTO notifications (aadhar_id, notification_type, message, is_sent)
                         VALUES (%s, %s, %s, %s)
-                    """, (farmer['farmer_id'], 'Welcome Message', 'Welcome to AgriNexus!', False))
+                    """, (farmer['aadhar_id'], 'General', 'Welcome to AgriNexus! We are glad to have you.', False))
                     mysql.connection.commit()
 
                     # Send SMS
                     try:
                         message = client.messages.create(
                             body="Welcome to AgriNexus! We are glad to have you on board.",
-                            from_='',  # Your Twilio number
+                            from_=os.getenv("TWILIO_PHONE_NUMBER"),  #Twilio number
                             to=f'+91{phone_no}'    # Farmer's phone number
                         )
-                        print("Welcome message sent with SID:", message.sid)
 
                         # Update notification status
                         cursor.execute("""
-                            UPDATE farmer_notifications 
-                            SET sent = TRUE 
-                            WHERE farmer_id = %s AND notification_type = 'Welcome Message'
-                        """, (farmer['farmer_id'],))
-                        mysql.connection.commit()
-
-                        # Update first login status
-                        cursor.execute("UPDATE farmers SET first_login = FALSE WHERE aadhar_id = %s", (aadhar_id,))
+                            UPDATE notifications 
+                            SET is_sent = TRUE 
+                            WHERE aadhar_id = %s AND notification_type = 'General'
+                        """, (farmer['aadhar_id'],))
                         mysql.connection.commit()
                     except Exception as e:
                         print(f"Failed to send SMS: {e}")
                         flash('Welcome message could not be sent, but login was successful.', 'warning')
+
+                    # Update first login status
+                    cursor.execute("UPDATE farmers SET first_login = FALSE WHERE aadhar_id = %s", (aadhar_id,))
+                    mysql.connection.commit()
 
                 flash('Login successful!', 'success')
                 return redirect(url_for('farmer_details'))
@@ -197,7 +200,6 @@ def farmer_login():
                 flash('Invalid Aadhar ID or Phone Number.', 'error')
 
         except MySQLdb.Error as e:
-            print(f"Database error: {e}")
             flash('An error occurred. Please try again.', 'error')
         finally:
             cursor.close()
