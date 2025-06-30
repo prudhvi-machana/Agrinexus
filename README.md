@@ -1,4 +1,4 @@
-# Agrinexus-DBMS-Minor-Project
+# Agrinexus-DBMS--Project
   
 Agriculture plays a vital role in many economies, but farmers often face challenges accessing the information they need to improve their livelihoods. Simultaneously, governments and agricultural researchers require accurate, centralized data to make informed decisions.
 
