@@ -1,6 +1,7 @@
 from flask import Flask
 from app.db.database import init_db
-
+from dotenv import load_dotenv
+import os
 
 def create_app():
 
@@ -8,11 +9,14 @@ def create_app():
 
     app.config["SECRET_KEY"] = "your_secret_key"
 
-    # MySQL configuration
-    app.config["MYSQL_HOST"] = "localhost"
-    app.config["MYSQL_USER"] = "agrinexus"
-    app.config["MYSQL_PASSWORD"] = "your password"
-    app.config["MYSQL_DB"] = "AgriData"
+
+
+    load_dotenv()  # Loads variables from .env file
+
+    app.config['MYSQL_HOST'] = os.getenv('MYSQL_HOST')
+    app.config['MYSQL_USER'] = os.getenv('MYSQL_USER')
+    app.config['MYSQL_PASSWORD'] = os.getenv('MYSQL_PASSWORD')
+    app.config['MYSQL_DB'] = os.getenv('MYSQL_DB')
 
     # initialize database
     init_db(app)
